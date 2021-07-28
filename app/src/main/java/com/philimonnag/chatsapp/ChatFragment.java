@@ -3,6 +3,7 @@ package com.philimonnag.chatsapp;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -16,6 +17,7 @@ import android.widget.Toast;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
@@ -39,10 +41,12 @@ private FragmentChatBinding binding;
 FirebaseUser firebaseUser;
 ArrayList<Message>arrayList;
 MessageAdapter adapter;
-
     String SenderRoom,ReceiverRoom,uEmail;
     String receiverUid;
     String senderUid;
+    private static  int TOTAL_ITEM=10;
+    private int mCurrentPage=1;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -119,17 +123,35 @@ MessageAdapter adapter;
         binding.messageRV.setLayoutManager(new LinearLayoutManager(getContext(),LinearLayoutManager.VERTICAL,false ));
 
         binding.messageRV.setAdapter(adapter);
-        loadChats();
+        loadMessage();
         binding.swipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                loadChats();
+                mCurrentPage++;
+                arrayList.clear();
+                loadMessage();
             }
         });
         return root;
     }
 
     private void loadChats() {
+        FirebaseDatabase.getInstance().getReference().child("chats")
+                .child(SenderRoom).child("messages").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull @NotNull DataSnapshot snapshot) {
+                if(snapshot.exists()){
+
+                    Toast.makeText(getContext(), (int) snapshot.getChildrenCount(), Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull @NotNull DatabaseError error) {
+
+            }
+        });
+
         Query query=FirebaseDatabase.getInstance().getReference().child("chats")
                 .child(SenderRoom).child("messages")
                 .limitToLast(10);
@@ -154,5 +176,40 @@ MessageAdapter adapter;
                 Toast.makeText(getContext(), error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+    }
+   private void loadMessage(){
+       Query query=FirebaseDatabase.getInstance().getReference().child("chats")
+               .child(SenderRoom).child("messages")
+               .limitToLast(mCurrentPage*TOTAL_ITEM);
+       query.addChildEventListener(new ChildEventListener() {
+           @Override
+           public void onChildAdded(@NonNull @NotNull DataSnapshot snapshot, @Nullable @org.jetbrains.annotations.Nullable String previousChildName) {
+               Message messages=snapshot.getValue(Message.class);
+               arrayList.add(messages);
+              // binding.messageRV.scrollToPosition(arrayList.lastIndexOf(messages));
+               binding.messageRV.scrollToPosition(arrayList.size()-1);
+               binding.swipeRefresh.setRefreshing(false);
+           }
+
+           @Override
+           public void onChildChanged(@NonNull @NotNull DataSnapshot snapshot, @Nullable @org.jetbrains.annotations.Nullable String previousChildName) {
+
+           }
+
+           @Override
+           public void onChildRemoved(@NonNull @NotNull DataSnapshot snapshot) {
+
+           }
+
+           @Override
+           public void onChildMoved(@NonNull @NotNull DataSnapshot snapshot, @Nullable @org.jetbrains.annotations.Nullable String previousChildName) {
+
+           }
+
+           @Override
+           public void onCancelled(@NonNull @NotNull DatabaseError error) {
+
+           }
+       });
     }
 }
