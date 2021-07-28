@@ -7,8 +7,10 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -46,6 +48,8 @@ MessageAdapter adapter;
     String senderUid;
     private static  int TOTAL_ITEM=10;
     private int mCurrentPage=1;
+    private int itemPosition=0;
+    private String mLastKey;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -121,37 +125,21 @@ MessageAdapter adapter;
         adapter = new MessageAdapter(getContext(),arrayList,uEmail);
         binding.messageRV.setHasFixedSize(true);
         binding.messageRV.setLayoutManager(new LinearLayoutManager(getContext(),LinearLayoutManager.VERTICAL,false ));
-
         binding.messageRV.setAdapter(adapter);
         loadMessage();
         binding.swipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 mCurrentPage++;
+                itemPosition=0;
                 arrayList.clear();
-                loadMessage();
+                loadMoreMessage();
             }
         });
         return root;
     }
 
     private void loadChats() {
-        FirebaseDatabase.getInstance().getReference().child("chats")
-                .child(SenderRoom).child("messages").addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull @NotNull DataSnapshot snapshot) {
-                if(snapshot.exists()){
-
-                    Toast.makeText(getContext(), (int) snapshot.getChildrenCount(), Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull @NotNull DatabaseError error) {
-
-            }
-        });
-
         Query query=FirebaseDatabase.getInstance().getReference().child("chats")
                 .child(SenderRoom).child("messages")
                 .limitToLast(10);
@@ -177,15 +165,61 @@ MessageAdapter adapter;
             }
         });
     }
+    private  void  loadMoreMessage(){
+        Query query=FirebaseDatabase.getInstance().getReference().child("chats")
+                .child(SenderRoom).child("messages").orderByKey().endAt(mLastKey).limitToLast(10);
+        query.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull @NotNull DataSnapshot snapshot, @Nullable @org.jetbrains.annotations.Nullable String previousChildName) {
+                Message messages=snapshot.getValue(Message.class);
+                arrayList.add(itemPosition++,messages);
+                if(itemPosition==1){
+                    String messageKey=  snapshot.getKey();
+                    mLastKey=messageKey;
+                }
+
+                adapter.notifyDataSetChanged();
+                binding.messageRV.scrollToPosition(arrayList.size()-1);
+               binding.swipeRefresh.setRefreshing(false);
+            }
+
+            @Override
+            public void onChildChanged(@NonNull @NotNull DataSnapshot snapshot, @Nullable @org.jetbrains.annotations.Nullable String previousChildName) {
+
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull @NotNull DataSnapshot snapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(@NonNull @NotNull DataSnapshot snapshot, @Nullable @org.jetbrains.annotations.Nullable String previousChildName) {
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull @NotNull DatabaseError error) {
+
+            }
+        });
+    }
    private void loadMessage(){
+        int praiseToGod=mCurrentPage*TOTAL_ITEM;
        Query query=FirebaseDatabase.getInstance().getReference().child("chats")
                .child(SenderRoom).child("messages")
-               .limitToLast(mCurrentPage*TOTAL_ITEM);
+               .limitToLast(praiseToGod);
        query.addChildEventListener(new ChildEventListener() {
            @Override
            public void onChildAdded(@NonNull @NotNull DataSnapshot snapshot, @Nullable @org.jetbrains.annotations.Nullable String previousChildName) {
                Message messages=snapshot.getValue(Message.class);
+               itemPosition++;
+               if(itemPosition==1){
+                 String messageKey=  snapshot.getKey();
+                 mLastKey=messageKey;
+               }
                arrayList.add(messages);
+               adapter.notifyDataSetChanged();
               // binding.messageRV.scrollToPosition(arrayList.lastIndexOf(messages));
                binding.messageRV.scrollToPosition(arrayList.size()-1);
                binding.swipeRefresh.setRefreshing(false);
