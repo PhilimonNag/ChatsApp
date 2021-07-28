@@ -78,7 +78,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
         }
     }
     private void LastMessage(String uid, TextView textView, TextView mTv) {
-        FirebaseDatabase.getInstance().getReference().child("chats").
+        FirebaseDatabase.getInstance().getReference().child("lastChat").
                 child(uid+firebaseUser.getUid()).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull @NotNull DataSnapshot snapshot) {

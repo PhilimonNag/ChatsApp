@@ -100,6 +100,10 @@ MessageAdapter adapter;
                 HashMap<String , Object> last=new HashMap<>();
                 last.put("lastMsg",message.getMessage());
                 last.put("lastMsgtime",time);
+                last.put("lastMsg",message.getMessage());
+                last.put("lastMsgtime",time);
+                FirebaseDatabase.getInstance().getReference().child("lastChat").child(SenderRoom).updateChildren(last);
+                FirebaseDatabase.getInstance().getReference().child("lastChat").child(ReceiverRoom).updateChildren(last);
                 FirebaseDatabase.getInstance().getReference().child("chats")
                         .child(SenderRoom)
                         .child("messages")
@@ -139,32 +143,6 @@ MessageAdapter adapter;
         return root;
     }
 
-    private void loadChats() {
-        Query query=FirebaseDatabase.getInstance().getReference().child("chats")
-                .child(SenderRoom).child("messages")
-                .limitToLast(10);
-        query.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull @NotNull DataSnapshot snapshot) {
-                arrayList.clear();
-                if(snapshot.exists()){
-                    for(DataSnapshot me:snapshot.getChildren()){
-                        Message messages=me.getValue(Message.class);
-                        arrayList.add(messages);
-                        binding.messageRV.scrollToPosition(arrayList.lastIndexOf(messages));
-                        binding.swipeRefresh.setRefreshing(false);
-                    }
-                }
-                adapter.notifyDataSetChanged();
-
-            }
-
-            @Override
-            public void onCancelled(@NonNull @NotNull DatabaseError error) {
-                Toast.makeText(getContext(), error.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
     private  void  loadMoreMessage(){
         Query query=FirebaseDatabase.getInstance().getReference().child("chats")
                 .child(SenderRoom).child("messages").orderByKey().endAt(mLastKey).limitToLast(10);
