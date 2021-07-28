@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="@color/receive"/>
+    <corners
+        android:bottomRightRadius="@dimen/msg_curve"
+        android:topRightRadius="@dimen/msg_curve"
+        android:bottomLeftRadius="@dimen/msg_curve"/>
+</shape>

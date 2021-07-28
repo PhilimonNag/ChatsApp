@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="top_heading">24sp</dimen>
+    <dimen name="time_size">8sp</dimen>
+    <dimen name="msg_curve">10dp</dimen>
+    <dimen name="drawable_padding">8dp</dimen>
+</resources>
