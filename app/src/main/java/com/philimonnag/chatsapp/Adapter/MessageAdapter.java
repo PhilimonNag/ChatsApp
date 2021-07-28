@@ -31,36 +31,19 @@ public class MessageAdapter extends RecyclerView.Adapter {
     final int SENDER_MSG=2;
     String email;
 
-    public MessageAdapter(Context context, ArrayList<Message> messagesArrayList) {
+    public MessageAdapter(Context context, ArrayList<Message> messagesArrayList, String email) {
         this.context = context;
         this.messagesArrayList = messagesArrayList;
-
+        this.email = email;
     }
 
     @Override
     public int getItemViewType(int position) {
-        firebaseUser= FirebaseAuth.getInstance().getCurrentUser();
-        FirebaseDatabase.getInstance().getReference()
-                .child("user").child(firebaseUser.getUid())
-                .addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull @NotNull DataSnapshot snapshot) {
-                        if(snapshot.exists()){
-                            User user= snapshot.getValue(User.class);
-                            email= user.getPersonEmail();
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull @NotNull DatabaseError error) {
-
-                    }
-                });
         Message model= messagesArrayList.get(position);
         if(model.getSenderEmail().equals(email)){
-            return SENDER_MSG;
-        }else {
             return RECEIVE_MSG;
+        }else {
+            return SENDER_MSG;
         }
     }
 

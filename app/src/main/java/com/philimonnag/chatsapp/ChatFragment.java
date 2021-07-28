@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -113,12 +114,18 @@ MessageAdapter adapter;
             }
         });
          arrayList= new ArrayList<>();
-        adapter = new MessageAdapter(getContext(),arrayList);
+        adapter = new MessageAdapter(getContext(),arrayList,uEmail);
         binding.messageRV.setHasFixedSize(true);
         binding.messageRV.setLayoutManager(new LinearLayoutManager(getContext(),LinearLayoutManager.VERTICAL,false ));
 
         binding.messageRV.setAdapter(adapter);
         loadChats();
+        binding.swipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                loadChats();
+            }
+        });
         return root;
     }
 
@@ -135,6 +142,7 @@ MessageAdapter adapter;
                         Message messages=me.getValue(Message.class);
                         arrayList.add(messages);
                         binding.messageRV.scrollToPosition(arrayList.lastIndexOf(messages));
+                        binding.swipeRefresh.setRefreshing(false);
                     }
                 }
                 adapter.notifyDataSetChanged();
