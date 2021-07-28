@@ -54,10 +54,8 @@ public class ProfileFragment extends Fragment {
         binding.LogOut.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mAuth.signOut();
-                if(firebaseUser==null){
+                 mAuth.signOut();
                     Navigation.findNavController(v).navigate(R.id.action_profileFragment_to_loginFragment);
-                }
 
             }
         });
